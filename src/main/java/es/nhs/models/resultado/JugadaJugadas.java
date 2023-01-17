@@ -16,6 +16,11 @@ public class JugadaJugadas
 
     private List<Double> location;
 
+    public JugadaJugadas()
+    {
+
+    }
+
     public JugadaJugadas(String player_name, String action, List<Double> location)
     {
         this.player_name = player_name;

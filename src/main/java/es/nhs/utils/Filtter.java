@@ -53,10 +53,51 @@ public class Filtter
     public void jugadasVerticales()
     {
 
+        JugadaJugadas jugadaJugadas = null;
+
+        int ultimaPosesion = 0;
+
+        double ultimoAvance = 0;
+
+        for (Event event : eventList)
+        {
+
+            if (event.getLocation() != null && event.getPlayer() != null)
+            {
+
+                jugadaJugadas = new JugadaJugadas();
+
+                if (ultimaPosesion == event.getPossession() && event.getLocation().get(0) >= ultimoAvance)
+                {
+
+                    jugadaJugadas.setAction(event.getType().getName());
+                    jugadaJugadas.setLocation(event.getLocation());
+                    jugadaJugadas.setPlayer_name(event.getPlayer().getName());
+
+                    this.resultado.getJugadas_verticales().get(this.resultado.getJugadas_verticales().size() - 1).getJugada().add(jugadaJugadas);
+
+                }
+                else
+                {
+                    this.resultado.getJugadas_verticales().add(new JugadasVerticales(event.getMinute(), event.getSecond(), event.getTeam().getName(), new ArrayList<JugadaJugadas>()));
+                }
+
+                ultimoAvance = event.getLocation().get(0);
+
+                ultimaPosesion = event.getPossession();
+
+            }
+
+
+
+        }
+
     }
 
     public void jugadorVertical()
     {
+
+
 
     }
 

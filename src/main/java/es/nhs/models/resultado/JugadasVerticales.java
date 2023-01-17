@@ -1,5 +1,8 @@
 package es.nhs.models.resultado;
 
+import es.nhs.models.events.Event;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
