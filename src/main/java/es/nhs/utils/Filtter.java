@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import es.nhs.models.events.Event;
 import es.nhs.models.resultado.*;
 import es.nhs.utils.modelsAux.GoalShot;
+import es.nhs.utils.modelsAux.ResultListPosesionFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,11 +24,13 @@ public class Filtter
 
     List<Event> eventList;
     Resultado resultado;
+    Map<Integer, ResultListPosesionFilter> mapPossesion;
 
     public Filtter(List<Event> eventList)
     {
         this.eventList = eventList;
         this.resultado = new Resultado();
+        this.mapPossesion = new HashMap<>();
     }
 
     public List<Event> getEventList()
@@ -50,54 +53,144 @@ public class Filtter
         System.out.println(this.resultado.toString());
     }
 
+
     public void jugadasVerticales()
     {
 
-        JugadaJugadas jugadaJugadas = null;
+        List<JugadaJugadas> jugadas = new ArrayList<>(); // Storage of jugadas
+        List<List<JugadaJugadas>> jugadasList = new ArrayList<>();
 
-        int ultimaPosesion = 0;
 
-        double ultimoAvance = 0;
-
-        for (Event event : eventList)
+        for (Event event : this.eventList)
         {
-
-            if (event.getLocation() != null && event.getPlayer() != null)
+            if (!this.mapPossesion.containsKey(event.getPossession())) // If not exist int map, we storage the new data
             {
-
-                jugadaJugadas = new JugadaJugadas();
-
-                if (ultimaPosesion == event.getPossession() && event.getLocation().get(0) >= ultimoAvance)
+                if (event.getLocation() != null && event.getPlayer() != null)
                 {
-
-                    jugadaJugadas.setAction(event.getType().getName());
-                    jugadaJugadas.setLocation(event.getLocation());
-                    jugadaJugadas.setPlayer_name(event.getPlayer().getName());
-
-                    this.resultado.getJugadas_verticales().get(this.resultado.getJugadas_verticales().size() - 1).getJugada().add(jugadaJugadas);
-
-                }
-                else
-                {
-                    this.resultado.getJugadas_verticales().add(new JugadasVerticales(event.getMinute(), event.getSecond(), event.getTeam().getName(), new ArrayList<JugadaJugadas>()));
+                    this.mapPossesion.put(event.getPossession(), new ResultListPosesionFilter()); // We create the result
+                    this.mapPossesion.get(event.getPossession()).getActions().add(event.getType().getName()); // we add the action
+                    this.mapPossesion.get(event.getPossession()).setTeam(event.getTeam().getName()); // We add the name of the team
+                    this.mapPossesion.get(event.getPossession()).setPosession(event.getPossession()); // We add the number possesion
+                    this.mapPossesion.get(event.getPossession()).getLocation().add(event.getLocation()); // We add the location of the event
+                    this.mapPossesion.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
+                    this.mapPossesion.get(event.getPossession()).getSecond().add(event.getSecond());
+                    this.mapPossesion.get(event.getPossession()).getMinute().add(event.getMinute());
                 }
 
-                ultimoAvance = event.getLocation().get(0);
-
-                ultimaPosesion = event.getPossession();
-
+            } else
+            {
+                if (event.getLocation() != null)
+                {
+                    this.mapPossesion.get(event.getPossession()).getActions().add(event.getType().getName());
+                    this.mapPossesion.get(event.getPossession()).getLocation().add(event.getLocation());
+                    this.mapPossesion.get(event.getPossession()).getSecond().add(event.getSecond());
+                    this.mapPossesion.get(event.getPossession()).getMinute().add(event.getMinute());
+                    this.mapPossesion.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
+                }
             }
-
-
-
         }
 
+        for (Map.Entry<Integer, ResultListPosesionFilter> entry : mapPossesion.entrySet())
+        {
+
+            double posicionAnteriorJugador = entry.getValue().getLocation().get(0).get(0);
+
+            int j = 0;
+
+            if (entry.getValue().getLocation().size() > 2)
+            {
+                while (j < entry.getValue().getLocation().size())
+                {
+                    while (posicionAnteriorJugador < entry.getValue().getLocation().get(j).get(0))
+                    {
+                        jugadas.add(new JugadaJugadas(
+                                entry.getValue().getPlayer_name().get(j),
+                                entry.getValue().getActions().get(j),
+                                entry.getValue().getLocation().get(j)));
+
+                        posicionAnteriorJugador = entry.getValue().getLocation().get(j).get(0);
+
+                        j++;
+
+                        if (j == entry.getValue().getLocation().size())
+                        {
+                            break;
+                        }
+
+                    }
+
+                    if (jugadas.size() > 2)
+                    {
+                        this.resultado.getJugadas_verticales().add(new JugadasVerticales(entry.getValue().getMinute().get(0), entry.getValue().getSecond().get(0), entry.getValue().getTeam(), new ArrayList<>(jugadas)));
+                    }
+
+
+                    if (j == entry.getValue().getLocation().size())
+                    {
+                        break;
+                    }
+
+                    j++;
+
+                    jugadas.clear();
+
+                }
+
+                jugadas.clear();
+            }
+        }
     }
+
 
     public void jugadorVertical()
     {
 
+        int positionAuxJ = 0;
 
+        String namePlayer = "";
+
+        Double posicionAnteriorJugador = null;
+
+        List<ResultListPosesionFilter> resultListPosesionFilterList = new ArrayList<>();
+
+        List<JugadaJugadores> jugadaJugadoresList = new ArrayList<>();
+
+        for (Map.Entry<Integer, ResultListPosesionFilter> entry : this.mapPossesion.entrySet())
+        {
+            resultListPosesionFilterList.add(entry.getValue());
+        }
+
+        for (int i = 0; i < resultListPosesionFilterList.size(); i++)
+        {
+
+            for (int j = 0; j < resultListPosesionFilterList.get(i).getLocation().size(); j++)
+            {
+                if (posicionAnteriorJugador == null)
+                {
+                    posicionAnteriorJugador = resultListPosesionFilterList.get(i).getLocation().get(0).get(0);
+                    namePlayer = resultListPosesionFilterList.get(i).getPlayer_name().get(0);
+                } else
+                {
+                    if (resultListPosesionFilterList.get(i).getLocation().get(j).get(0) - posicionAnteriorJugador >= 20 && namePlayer.equals(resultListPosesionFilterList.get(i).getPlayer_name().get(j)))
+                    {
+                        jugadaJugadoresList.add(
+                                new JugadaJugadores(
+                                resultListPosesionFilterList.get(i).getActions().get(j),
+                                resultListPosesionFilterList.get(i).getLocation().get(j)));
+                    }
+                }
+            }
+
+            if (jugadaJugadoresList.size() > 2)
+            {
+                this.resultado.getJugador_vertical().add(new JugadoresVerticales(resultListPosesionFilterList.get(i).getMinute().get(jugadaJugadoresList.size() - 1), resultListPosesionFilterList.get(i).getSecond().get(jugadaJugadoresList.size() - 1), resultListPosesionFilterList.get(i).getTeam(), resultListPosesionFilterList.get(i).getPlayer_name().get(jugadaJugadoresList.size() - 1), new ArrayList<>(jugadaJugadoresList)));
+            }
+
+            posicionAnteriorJugador = resultListPosesionFilterList.get(i).getLocation().get(i).get(0);
+
+            jugadaJugadoresList.clear();
+
+        }
 
     }
 
