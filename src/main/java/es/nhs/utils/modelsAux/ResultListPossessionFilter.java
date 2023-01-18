@@ -8,7 +8,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 24/12/2022
  */
-public class ResultListPosesionFilter
+public class ResultListPossessionFilter
 {
 
     int posession;
@@ -20,7 +20,7 @@ public class ResultListPosesionFilter
     List<Integer> second;
 
 
-    public ResultListPosesionFilter()
+    public ResultListPossessionFilter()
     {
         this.actions = new ArrayList<>();
         this.location = new ArrayList<>();
@@ -30,7 +30,7 @@ public class ResultListPosesionFilter
 
     }
 
-    public ResultListPosesionFilter(int posession, String team, List<String> actions)
+    public ResultListPossessionFilter(int posession, String team, List<String> actions)
     {
         this.posession = posession;
         this.team = team;

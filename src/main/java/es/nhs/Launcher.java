@@ -5,13 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.nhs.models.events.Event;
 import es.nhs.utils.Filtter;
 import es.nhs.utils.Json;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
+
+// FILTRO JUGADORVERTICAL EMPTY !!!
+
 public class Launcher
 {
+
+    private static final Logger LOG = LogManager.getLogger();
 
     public static void main(String[] args)
     {
@@ -30,6 +37,7 @@ public class Launcher
         } catch (IOException exception)
         {
             exception.printStackTrace();
+            LOG.error("ERROR", exception);
         }
 
     }

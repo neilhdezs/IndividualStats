@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import es.nhs.models.events.Event;
 import es.nhs.models.resultado.*;
 import es.nhs.utils.modelsAux.GoalShot;
-import es.nhs.utils.modelsAux.ResultListPosesionFilter;
+import es.nhs.utils.modelsAux.ResultListPossessionFilter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,15 +24,18 @@ import java.util.Map;
 public class Filtter
 {
 
+    private static final Logger LOG = LogManager.getLogger();
+
+
     List<Event> eventList;
     Resultado resultado;
-    Map<Integer, ResultListPosesionFilter> mapPossesion;
+    Map<Integer, ResultListPossessionFilter> mapPossession;
 
     public Filtter(List<Event> eventList)
     {
         this.eventList = eventList;
         this.resultado = new Resultado();
-        this.mapPossesion = new HashMap<>();
+        this.mapPossession = new HashMap<>();
     }
 
     public List<Event> getEventList()
@@ -46,7 +51,7 @@ public class Filtter
     public void filtradoCompleto() throws IOException
     {
         jugadasVerticales();
-        jugadorVertical();
+        jugadorVertical(); // EMPTY
         mapasDeCalor();
         jugadorInfrautilizado();
         escribirResultadoJson();
@@ -63,34 +68,34 @@ public class Filtter
 
         for (Event event : this.eventList)
         {
-            if (!this.mapPossesion.containsKey(event.getPossession())) // If not exist int map, we storage the new data
+            if (!this.mapPossession.containsKey(event.getPossession())) // If not exist int map, we storage the new data
             {
                 if (event.getLocation() != null && event.getPlayer() != null)
                 {
-                    this.mapPossesion.put(event.getPossession(), new ResultListPosesionFilter()); // We create the result
-                    this.mapPossesion.get(event.getPossession()).getActions().add(event.getType().getName()); // we add the action
-                    this.mapPossesion.get(event.getPossession()).setTeam(event.getTeam().getName()); // We add the name of the team
-                    this.mapPossesion.get(event.getPossession()).setPosession(event.getPossession()); // We add the number possesion
-                    this.mapPossesion.get(event.getPossession()).getLocation().add(event.getLocation()); // We add the location of the event
-                    this.mapPossesion.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
-                    this.mapPossesion.get(event.getPossession()).getSecond().add(event.getSecond());
-                    this.mapPossesion.get(event.getPossession()).getMinute().add(event.getMinute());
+                    this.mapPossession.put(event.getPossession(), new ResultListPossessionFilter()); // We create the result
+                    this.mapPossession.get(event.getPossession()).getActions().add(event.getType().getName()); // we add the action
+                    this.mapPossession.get(event.getPossession()).setTeam(event.getTeam().getName()); // We add the name of the team
+                    this.mapPossession.get(event.getPossession()).setPosession(event.getPossession()); // We add the number possesion
+                    this.mapPossession.get(event.getPossession()).getLocation().add(event.getLocation()); // We add the location of the event
+                    this.mapPossession.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
+                    this.mapPossession.get(event.getPossession()).getSecond().add(event.getSecond());
+                    this.mapPossession.get(event.getPossession()).getMinute().add(event.getMinute());
                 }
 
             } else
             {
                 if (event.getLocation() != null)
                 {
-                    this.mapPossesion.get(event.getPossession()).getActions().add(event.getType().getName());
-                    this.mapPossesion.get(event.getPossession()).getLocation().add(event.getLocation());
-                    this.mapPossesion.get(event.getPossession()).getSecond().add(event.getSecond());
-                    this.mapPossesion.get(event.getPossession()).getMinute().add(event.getMinute());
-                    this.mapPossesion.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
+                    this.mapPossession.get(event.getPossession()).getActions().add(event.getType().getName());
+                    this.mapPossession.get(event.getPossession()).getLocation().add(event.getLocation());
+                    this.mapPossession.get(event.getPossession()).getSecond().add(event.getSecond());
+                    this.mapPossession.get(event.getPossession()).getMinute().add(event.getMinute());
+                    this.mapPossession.get(event.getPossession()).getPlayer_name().add(event.getPlayer().getName());
                 }
             }
         }
 
-        for (Map.Entry<Integer, ResultListPosesionFilter> entry : mapPossesion.entrySet())
+        for (Map.Entry<Integer, ResultListPossessionFilter> entry : mapPossession.entrySet())
         {
 
             double posicionAnteriorJugador = entry.getValue().getLocation().get(0).get(0);
@@ -145,52 +150,7 @@ public class Filtter
     public void jugadorVertical()
     {
 
-        int positionAuxJ = 0;
-
-        String namePlayer = "";
-
-        Double posicionAnteriorJugador = null;
-
-        List<ResultListPosesionFilter> resultListPosesionFilterList = new ArrayList<>();
-
-        List<JugadaJugadores> jugadaJugadoresList = new ArrayList<>();
-
-        for (Map.Entry<Integer, ResultListPosesionFilter> entry : this.mapPossesion.entrySet())
-        {
-            resultListPosesionFilterList.add(entry.getValue());
-        }
-
-        for (int i = 0; i < resultListPosesionFilterList.size(); i++)
-        {
-
-            for (int j = 0; j < resultListPosesionFilterList.get(i).getLocation().size(); j++)
-            {
-                if (posicionAnteriorJugador == null)
-                {
-                    posicionAnteriorJugador = resultListPosesionFilterList.get(i).getLocation().get(0).get(0);
-                    namePlayer = resultListPosesionFilterList.get(i).getPlayer_name().get(0);
-                } else
-                {
-                    if (resultListPosesionFilterList.get(i).getLocation().get(j).get(0) - posicionAnteriorJugador >= 20 && namePlayer.equals(resultListPosesionFilterList.get(i).getPlayer_name().get(j)))
-                    {
-                        jugadaJugadoresList.add(
-                                new JugadaJugadores(
-                                resultListPosesionFilterList.get(i).getActions().get(j),
-                                resultListPosesionFilterList.get(i).getLocation().get(j)));
-                    }
-                }
-            }
-
-            if (jugadaJugadoresList.size() > 2)
-            {
-                this.resultado.getJugador_vertical().add(new JugadoresVerticales(resultListPosesionFilterList.get(i).getMinute().get(jugadaJugadoresList.size() - 1), resultListPosesionFilterList.get(i).getSecond().get(jugadaJugadoresList.size() - 1), resultListPosesionFilterList.get(i).getTeam(), resultListPosesionFilterList.get(i).getPlayer_name().get(jugadaJugadoresList.size() - 1), new ArrayList<>(jugadaJugadoresList)));
-            }
-
-            posicionAnteriorJugador = resultListPosesionFilterList.get(i).getLocation().get(i).get(0);
-
-            jugadaJugadoresList.clear();
-
-        }
+        // EMPTY
 
     }
 
